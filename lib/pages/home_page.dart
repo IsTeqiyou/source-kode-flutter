@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:noteapp/pages/note_page.dart';
+import 'package:noteapp/widgets/confirm_dialog.dart';
+import 'package:noteapp/widgets/note_card.dart';
 // import 'package:noteapp/pages/note_page.dart';
 import '../models/note_model.dart';
 // import '../widgets/note_card.dart';
@@ -19,46 +22,47 @@ class _HomePageState extends State<HomePage> {
   // ================= CRUD =================
 
   //=========== ADD ===========
-  // void addNote(Note note) {
-  //   setState(() {
-  //     notes.add(note);
-  //   });
-  // }
+  void addNote(Note note) {
+    setState(() {
+      notes.add(note);
+    });
+  }
 
   // //=========== UPDATE =========
-  // void updateNote(int index, Note note) {
-  //   setState(() {
-  //     notes[index] = note;
-  //   });
-  // }
+  void updateNote(int index, Note note) {
+    setState(() {
+      notes[index] = note;
+    });
+  }
 
   //=========== DELETE =========
-  // void deleteNote(int index) async {
-  //   bool confirm = await showConfirmDialog(context);
-  //   if (confirm) {
-  //     setState(() {
-  //       notes.removeAt(index);
-  //     });
-  //   }
-  // }
+
+  void deleteNote(int index) async {
+    bool confirm = await showConfirmDialog(context);
+    if (confirm) {
+      setState(() {
+        notes.removeAt(index);
+      });
+    }
+  }
 
   // ================= NAVIGATION (KEEP STYLE) =================
 
-  // void goToNotePage({Note? note, int? index}) async {
-  //   final result = await Navigator.push(
-  //     context,
-  //     MaterialPageRoute(builder: (_) => NotePage(note: note)),
-  //   );
+  void goToNotePage({Note? note, int? index}) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => NotePage(note: note)),
+    );
 
-  //   // HANDLE RESULT
-  //   if (result == "delete" && index != null) {
-  //     deleteNote(index);
-  //   } else if (result != null && index != null) {
-  //     updateNote(index, result);
-  //   } else if (result != null) {
-  //     addNote(result);
-  //   }
-  // }
+    // HANDLE RESULT
+    if (result == "delete" && index != null) {
+      deleteNote(index);
+    } else if (result != null && index != null) {
+      updateNote(index, result);
+    } else if (result != null) {
+      addNote(result);
+    }
+  }
 
   // ================= UI =================
 
@@ -96,20 +100,20 @@ class _HomePageState extends State<HomePage> {
                 childAspectRatio: 0.9,
               ),
               itemBuilder: (context, index) {
-                // return NoteCard(
-                //   note: notes[index],
+                return NoteCard(
+                  note: notes[index],
 
-                //   // 👉 EDIT → buka halaman detail
-                //   onEdit: () => goToNotePage(note: notes[index], index: index),
+                  // 👉 EDIT → buka halaman detail
+                  onEdit: () => goToNotePage(note: notes[index], index: index),
 
-                //   // 👉 DELETE langsung dari card
-                //   onDelete: () => deleteNote(index),
-                // );
+                  // 👉 DELETE langsung dari card
+                  onDelete: () => deleteNote(index),
+                );
               },
             ),
 
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: () =>goToNotePage(),
         child: const Icon(Icons.add),
       ),
     );
