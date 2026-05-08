@@ -25,14 +25,38 @@ class  NotePageState extends State<NotePage> {
     }
   }
 
+  @override
+  void dispose(){
+    titlecontroler.dispose();
+    descriptioncontroler.dispose();
+    authorcontroler.dispose();
+    super.dispose();
+  }
+
+
 void savenote(){
+  if(_isSaving) return;
+  _isSaving = true;
+
+  if(mounted) return;
+
+  if(titlecontroler.text.trim().isEmpty&&
+  contentControler.text.trim().isEmpty&&){
+    navigator.pop(context);
+    return;
+  }
+
+  final now = DateTime.now().toIso8601String();
   final note = Note(
+    id: widget.note?.id,
     title: titlecontroler.text,
     content: descriptioncontroler.text,
     author: authorcontroler.text,
+    createdAt: widget.note?.createdAt ?? now,
+    updatedAt: now
   );
-  Navigator.pop(context, note);
-}
+    
+  }
 
 void deletenote()async {
   final confirm = await showDialog(
