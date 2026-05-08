@@ -41,6 +41,8 @@ void savenote() {
   if (_isSaving) return;
   _isSaving = true;
 
+  if(!mounted) return;
+
   // 2. Hapus 'if(mounted) return' karena itu penyebab kode tidak jalan
   // 3. Perbaiki nama controller dan hapus '&&' gantung
   if (titlecontroler.text.trim().isEmpty && 
@@ -50,6 +52,7 @@ void savenote() {
   }
 
   final now = DateTime.now().toIso8601String();
+
   final note = Note(
     id: widget.note?.id,
     title: titlecontroler.text,
@@ -58,9 +61,11 @@ void savenote() {
     createdAt: widget.note?.createdAt ?? now,
     updatedAt: now
   );
+
+  Navigator.pop(context, note);
     
   }
-
+//DELETE
 void deletenote()async {
   final confirm = await showDialog(
     context: context,
@@ -80,6 +85,10 @@ void deletenote()async {
     ),
   );
 
+if (mounted) return;
+if(confirm ==true) {
+  Navigator.of(context).pop("delete");
+}
   if(confirm == true){
     
     // ignore: use_build_context_synchronously
@@ -90,65 +99,77 @@ void deletenote()async {
 @override
 Widget build(BuildContext context){
   Theme.of(context);
-  return Scaffold(
-    appBar: AppBar(
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back),
-        onPressed: savenote, // auto save saat back
-      ),
-      actions: [
-        IconButton(
-          onPressed: deletenote,
-       icon:const Icon(Icons.delete_outline),
-         )
-      ],
-    ),
+  return PopScope(
+  canPop: false,
 
-    body: Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          TextField(
-            controller: titlecontroler,
-            style: Theme.of(context).textTheme.titleLarge,
-            decoration: const InputDecoration(
-              hintText: "Judul",
-              border: InputBorder.none,
-            ),
-          ),
-          const SizedBox(height: 10),
+  onPopInvokedWithResult: (didPop, result) {
+    if (didPop || _isSaving) return;
+    _isSaving = true;
 
-          Expanded(child: TextField(
-            controller: descriptioncontroler,
-            style: Theme.of(context).textTheme.bodyMedium,
-            maxLines: null,
-            expands: true,
-            decoration: const InputDecoration(
-              hintText: "Tulis sesuatu...",
-              border: InputBorder.none,
-            ),
-          ),
-          ),
+    final navigator = Navigator.of(context);
+    savenote();
+    navigator.pop();
+  },
 
-          Divider(
-            color: Theme.of(context).dividerColor.withValues(alpha: 0.3),
-
-          ),
-
-          const SizedBox(height: 10),
-
-          TextField(
-            controller: authorcontroler,
-            style: Theme.of(context).textTheme.bodyMedium,
-            decoration: const InputDecoration(
-              hintText: "Penulis",
-              border: InputBorder.none,
-            ),
+    child: Scaffold(
+      appBar: AppBar(
+        title: const Text("Catatan"),
+        actions: [
+          IconButton(
+            onPressed: deletenote,
+            icon: const Icon(Icons.delete),
           )
         ],
+      ),
+    
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TextField(
+              controller: titlecontroler,
+              autofocus: true, // UX improvement
+              style: Theme.of(context).textTheme.titleLarge,
+              decoration: const InputDecoration(
+                hintText: "Judul",
+                border: InputBorder.none,
+              ),
+            ),
+            const SizedBox(height: 10),
+    
+            Expanded(child: TextField(
+              controller: descriptioncontroler,
+              style: Theme.of(context).textTheme.bodyMedium,
+              keyboardType: TextInputType.multiline,
+              maxLines: null,
+              expands: true,
+              decoration: const InputDecoration(
+                hintText: "Tulis sesuatu...",
+                border: InputBorder.none,
+              ),
+            ),
+            ),
+    
+            Divider(
+              color: Theme.of(context).dividerColor.withValues(alpha: 0.3),
+    
+            ),
+    
+            const SizedBox(height: 10),
+    
+            TextField(
+              controller: authorcontroler,
+              style: Theme.of(context).textTheme.bodyMedium,
+              decoration: const InputDecoration(
+                hintText: "Penulis",
+                border: InputBorder.none,
+              ),
+            )
+          ],
+        )
       )
-    )
+    ),
   );
 }
 

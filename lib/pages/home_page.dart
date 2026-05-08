@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:noteapp/pages/note_page.dart';
-import 'package:noteapp/widgets/confirm_dialog.dart';
+import 'package:noteapp/services/database_helper.dart';
+// import 'package:noteapp/widgets/confirm_dialog.dart';
 import 'package:noteapp/widgets/note_card.dart';
 // import 'package:noteapp/pages/note_page.dart';
 import '../models/note_model.dart';
@@ -19,50 +20,73 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   List<Note> notes = [];
 
+  Future<void> loadNotes() async{
+    final data = await DatabaseHelper.instance.gettAllNotes();
+    // ini kaya refres
+    setState(() {
+      notes = data;
+    });
+  }
+
+void goToNotePage({Note? note}) async {
+  final result = await Navigator.push(
+    context,
+    MaterialPageRoute(builder: (_) => NotePage(note: note)),
+  );
+
+  // DELETE
+  if (result == "delete" && note?.id != null) {
+    await DatabaseHelper.instance.deleteNote(note!.id!);
+    await loadNotes();
+    
+  }
+
+  //UPDATE
+
+  else if (result is Note && note != null) {
+    await DatabaseHelper.instance.updateNote(result);
+    await loadNotes();
+  }
+
+  // INSERT
+  else if (result is Note) {
+    await DatabaseHelper.instance.insertNote(result);
+    await loadNotes();
+  }
+ 
+}
+
+@override
+void initState() {
+  super.initState();
+  loadNotes();
+}
   // ================= CRUD =================
 
   //=========== ADD ===========
-  void addNote(Note note) {
-    setState(() {
-      notes.add(note);
-    });
-  }
+  // void addNote(Note note) {
+  //   setState(() {
+  //     notes.add(note);
+  //   });
+  // }
 
-  // //=========== UPDATE =========
-  void updateNote(int index, Note note) {
-    setState(() {
-      notes[index] = note;
-    });
-  }
+  // // //=========== UPDATE =========
+  // void updateNote(int index, Note note) {
+  //   setState(() {
+  //     notes[index] = note;
+  //   });
+  // }
 
-  //=========== DELETE =========
+  // //=========== DELETE =========
 
-  void deleteNote(int index) async {
-    bool confirm = await showConfirmDialog(context);
-    if (confirm) {
-      setState(() {
-        notes.removeAt(index);
-      });
-    }
-  }
-
-  // ================= NAVIGATION (KEEP STYLE) =================
-
-  void goToNotePage({Note? note, int? index}) async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => NotePage(note: note)),
-    );
-
-    // HANDLE RESULT
-    if (result == "delete" && index != null) {
-      deleteNote(index);
-    } else if (result != null && index != null) {
-      updateNote(index, result);
-    } else if (result != null) {
-      addNote(result);
-    }
-  }
+  // void deleteNote(int index) async {
+  //   bool confirm = await showConfirmDialog(context);
+  //   if (confirm) {
+  //     setState(() {
+  //       notes.removeAt(index);
+  //     });
+  //   }
+  // }
 
   // ================= UI =================
 
@@ -104,16 +128,16 @@ class _HomePageState extends State<HomePage> {
                   note: notes[index],
 
                   // 👉 EDIT → buka halaman detail
-                  onEdit: () => goToNotePage(note: notes[index], index: index),
+                  onEdit: () => goToNotePage(note: notes[index]),
 
                   // 👉 DELETE langsung dari card
-                  onDelete: () => deleteNote(index),
+                  onDelete: () => goToNotePage(note: notes[index]),
                 );
               },
             ),
 
       floatingActionButton: FloatingActionButton(
-        onPressed: () =>goToNotePage(),
+        onPressed: () => goToNotePage(),
         child: const Icon(Icons.add),
       ),
     );
