@@ -34,15 +34,18 @@ class  NotePageState extends State<NotePage> {
   }
 
 
-void savenote(){
-  if(_isSaving) return;
+// 1. Tambahkan ini di dalam class NotePageState (paling atas)
+bool _isSaving = false; 
+
+void savenote() {
+  if (_isSaving) return;
   _isSaving = true;
 
-  if(mounted) return;
-
-  if(titlecontroler.text.trim().isEmpty&&
-  contentControler.text.trim().isEmpty&&){
-    navigator.pop(context);
+  // 2. Hapus 'if(mounted) return' karena itu penyebab kode tidak jalan
+  // 3. Perbaiki nama controller dan hapus '&&' gantung
+  if (titlecontroler.text.trim().isEmpty && 
+      descriptioncontroler.text.trim().isEmpty) {
+    Navigator.pop(context); // N-nya harus besar
     return;
   }
 
