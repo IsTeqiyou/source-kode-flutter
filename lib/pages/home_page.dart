@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:noteapp/pages/note_page.dart';
-import 'package:noteapp/services/database_helper.dart';
-// import 'package:noteapp/widgets/confirm_dialog.dart';
-import 'package:noteapp/widgets/note_card.dart';
-// import 'package:noteapp/pages/note_page.dart';
+import '../services/database_helper.dart';
 import '../models/note_model.dart';
-// import '../widgets/note_card.dart';
-// import '../widgets/confirm_dialog.dart';
+import '../widgets/note_card.dart';
 
+// ================= WIDGET =================
 class HomePage extends StatefulWidget {
   final VoidCallback onToggleTheme;
 
@@ -17,84 +14,57 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
+// ================= STATE =================
 class _HomePageState extends State<HomePage> {
   List<Note> notes = [];
 
-  Future<void> loadNotes() async{
-    final data = await DatabaseHelper.instance.gettAllNotes();
-    // ini kaya refres
+  // ================= LOAD DATA (DATABASE → UI) =================
+  Future<void> loadNotes() async {
+    final data = await DatabaseHelper.instance.getAllNotes();
+    //ini kaya refres
     setState(() {
       notes = data;
     });
   }
 
-void goToNotePage({Note? note}) async {
-  final result = await Navigator.push(
-    context,
-    MaterialPageRoute(builder: (_) => NotePage(note: note)),
-  );
+  // ================= NAVIGATION + CRUD HANDLER =================
+  void goToNotePage({Note? note}) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => NotePage(note: note)),
+    );
 
-  // DELETE
-  if (result == "delete" && note?.id != null) {
-    await DatabaseHelper.instance.deleteNote(note!.id!);
-    await loadNotes();
-    
+    // ===== DELETE =====
+    if (result == "delete" && note?.id != null) {
+      await DatabaseHelper.instance.deleteNote(note!.id!);
+      await loadNotes();
+    }
+    // ===== UPDATE =====
+    else if (result is Note && note != null) {
+      await DatabaseHelper.instance.updateNote(result);
+      await loadNotes();
+    }
+    // ===== INSERT =====
+    else if (result is Note) {
+      await DatabaseHelper.instance.insertNote(result);
+      await loadNotes();
+    }
   }
 
-  //UPDATE
-
-  else if (result is Note && note != null) {
-    await DatabaseHelper.instance.updateNote(result);
-    await loadNotes();
+  // ================= INIT (PERTAMA KALI LOAD DATA) =================
+  @override
+  void initState() {
+    super.initState();
+    loadNotes();
   }
-
-  // INSERT
-  else if (result is Note) {
-    await DatabaseHelper.instance.insertNote(result);
-    await loadNotes();
-  }
- 
-}
-
-@override
-void initState() {
-  super.initState();
-  loadNotes();
-}
-  // ================= CRUD =================
-
-  //=========== ADD ===========
-  // void addNote(Note note) {
-  //   setState(() {
-  //     notes.add(note);
-  //   });
-  // }
-
-  // // //=========== UPDATE =========
-  // void updateNote(int index, Note note) {
-  //   setState(() {
-  //     notes[index] = note;
-  //   });
-  // }
-
-  // //=========== DELETE =========
-
-  // void deleteNote(int index) async {
-  //   bool confirm = await showConfirmDialog(context);
-  //   if (confirm) {
-  //     setState(() {
-  //       notes.removeAt(index);
-  //     });
-  //   }
-  // }
 
   // ================= UI =================
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return Scaffold(
+      // ===== APP BAR =====
       appBar: AppBar(
         title: const Text("My Notes"),
         actions: [
@@ -105,8 +75,10 @@ void initState() {
         ],
       ),
 
+      // ===== BACKGROUND =====
       backgroundColor: theme.scaffoldBackgroundColor,
 
+      // ===== BODY =====
       body: notes.isEmpty
           ? Center(
               child: Text(
@@ -127,15 +99,16 @@ void initState() {
                 return NoteCard(
                   note: notes[index],
 
-                  // 👉 EDIT → buka halaman detail
+                  // ===== EDIT =====
                   onEdit: () => goToNotePage(note: notes[index]),
 
-                  // 👉 DELETE langsung dari card
+                  // ===== DELETE =====
                   onDelete: () => goToNotePage(note: notes[index]),
                 );
               },
             ),
 
+      // ===== FLOATING BUTTON (ADD NOTE) =====
       floatingActionButton: FloatingActionButton(
         onPressed: () => goToNotePage(),
         child: const Icon(Icons.add),
